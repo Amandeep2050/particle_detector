@@ -1,6 +1,5 @@
-function checkCollisionWithEdges(detectorX, detectorWidth, screenWidth) {
-    rightEdgeX = detectorX + detectorWidth;
-    const collision = rightEdgeX === screenWidth || detectorX === 0;
+function checkCollisionWithEdges(detectorX, detectorEnd, startingPoint, endingPoint) {
+    const collision = detectorEnd === endingPoint || detectorX === startingPoint;
     return collision;
 }
 

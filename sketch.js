@@ -6,6 +6,7 @@ function running() {
 }
 
 const screenWidth = 900;
+const halfScreenWidth = screenWidth / 2;
 const screenHeight = 600;
 const Title = "Particle Detector";
 const screenFPS = 50;
@@ -26,14 +27,21 @@ function setup() {
     r.SetTargetFPS(screenFPS);
 }
 
-let detectorX = 0;
+let detector1X = 0;
+let detector1End = 0;
+let detector1Color = r.WHITE;
+
+let detector2X = halfScreenWidth;
+let detector2End = 0;
+let detector2Color = r.WHITE;
+
 const detectorY = 0;
 const detectorWidth = 50;
-let detectorColor = r.WHITE;
-let detectorEnd = 0;
-let xSpeed = 1;
 
-const particle1Start = 300;
+let dalta1_x = 2;
+let dalta2_x = 5;
+
+const particle1Start = 250;
 const particle1Width = 200;
 const particle1End = particle1Start + particle1Width;
 
@@ -44,15 +52,25 @@ const particle2End = particle2Start + particle2Width;
 const particleColor = r.BLUE;
 
 function update() {
-    detectorX += xSpeed;
+    // updating detectors location
+    detector1X += dalta1_x;
+    detector2X += dalta2_x;
 
-    const collision = geometry.checkCollisionWithEdges(detectorX, detectorWidth, screenWidth);
+    // updating detectors End
+    detector1End = detector1X + detectorWidth;
+    detector2End = detector2X + detectorWidth;
 
-    if (collision) {
-        xSpeed = -xSpeed;
+    // checking collision
+    const collision1 = geometry.checkCollisionWithEdges(detector1X, detector1End, 0, halfScreenWidth);
+    const collision2 = geometry.checkCollisionWithEdges(detector2X, detector2End, halfScreenWidth, screenWidth);
+
+    // changing direction.
+    if (collision1) {
+        dalta1_x = -dalta1_x;
     }
-
-    detectorEnd = detectorX + detectorWidth;
+    if (collision2) {
+        dalta2_x = -dalta2_x;
+    }
 }
 
 
@@ -60,12 +78,16 @@ function draw() {
     r.BeginDrawing();
     r.ClearBackground(screenColor);
 
+    r.DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, r.YELLOW);
+
     drawParticle(particle1Start, particle1Width, screenHeight, particleColor);
     drawParticle(particle2Start, particle2Width, screenHeight, particleColor);
 
-    detectorColor = choseColor(detectorX, detectorEnd, particle1Start, particle1End, particle2Start, particle2End);
+    detector1Color = choseColor(detector1X, detector1End, particle1Start, particle1End, particle2Start, particle2End);
+    detector2Color = choseColor(detector2X, detector2End, particle1Start, particle1End, particle2Start, particle2End);
 
-    r.DrawRectangle(detectorX, detectorY, detectorWidth, screenHeight, detectorColor);
+    r.DrawRectangle(detector1X, detectorY, detectorWidth, screenHeight, detector1Color);
+    r.DrawRectangle(detector2X, detectorY, detectorWidth, screenHeight, detector2Color);
 
     r.EndDrawing();
 }
