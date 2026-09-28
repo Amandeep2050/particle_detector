@@ -1,44 +1,9 @@
 const r = require("raylib");
-
-const screenWidth = 900;
-
-// detector 1
-let d1_start = 0;
-const d1_width = 50;
-let d1_color = r.WHITE;
-let d1_velocity = 2;
-let d1_hasDetected = false;
-let d1_lower;
-let d1_upper;
-
-// detector 2
-let d2_start = screenWidth / 2;
-const d2_width = 50;
-let d2_color = r.WHITE;
-let d2_velocity = 5;
-let d2_hasDetected = false;
-let d2_lower;
-let d2_upper;
-
-// detector 3
-let d3_start = 0;
-const d3_height = 50;
-let d3_color = r.WHITE;
-let d3_velocity = 5;
-let d3_hasDetected = false;
-let d3_lower;
-let d3_upper;
-
-// vertical particles
-const p1_start = 200;
-const p1_width = 100;
-
-const p2_start = 800;
-const p2_width = 30;
-
-// horizontal particles
-const p3_start = 200;
-const p3_height = 40;
+const d = require("./detector");
+const d1 = require("./d1");
+const d2 = require("./d2");
+const d3 = require("./d3");
+const p = require("./particles");
 
 function running() {
     return !r.WindowShouldClose();
@@ -49,12 +14,12 @@ function setup(width, height, title) {
     r.InitWindow(width, height, title);
     r.SetTargetFPS(50);
 
-    d1_lower = 0;
-    d1_upper = r.GetScreenWidth() / 2;
-    d2_lower = d1_upper;
-    d2_upper = r.GetScreenWidth();
-    d3_lower = 0;
-    d3_upper = r.GetScreenHeight();
+    d1.lower = 0;
+    d1.upper = r.GetScreenWidth() / 2;
+    d2.lower = d1.upper;
+    d2.upper = r.GetScreenWidth();
+    d3.lower = 0;
+    d3.upper = r.GetScreenHeight();
 }
 
 function drawVerticleRange(start, width, color) {
@@ -63,19 +28,6 @@ function drawVerticleRange(start, width, color) {
 
 function drawHorizontalRange(start, height, color) {
     r.DrawRectangle(0, start, r.GetScreenWidth(), height, color);
-}
-
-function isDetectorOutOfBounds(start, end, lower, upper) {
-    return end === upper || start === lower;
-}
-
-function changeDetectorPosition(start, velocity) {
-    return start += velocity;
-}
-
-function changeDetectorVelocity(start, width, lower, upper, velocity) {
-    const end = start + width;
-    return isDetectorOutOfBounds(start, end, lower, upper) ? -velocity : velocity;
 }
 
 function isBetween(x, y, a) {
@@ -95,25 +47,21 @@ function overlapFields(detectorStart, detectorWidth, field1_start, field1_width,
         rangeOverlap(detectorStart, detectorEnd, field2_start, field2_end));
 }
 
-function chooseColor(hasDetected) {
-    return hasDetected ? r.RED : r.WHITE;
-}
-
 function update() {
-    d1_start = changeDetectorPosition(d1_start, d1_velocity);
-    d1_velocity = changeDetectorVelocity(d1_start, d1_width, d1_lower, d1_upper, d1_velocity);
-    d1_hasDetected = overlapFields(d1_start, d1_width, p1_start, p1_width, p2_start, p2_width);
-    d1_color = chooseColor(d1_hasDetected);
+    d1.start = d.changePosition(d1.start, d1.velocity);
+    d1.velocity = d.changeVelocity(d1.start, d1.width, d1.lower, d1.upper, d1.velocity);
+    d1.hasDetected = overlapFields(d1.start, d1.width, p.p1_start, p.p1_width, p.p2_start, p.p2_width);
+    d1.color = d.chooseColor(d1.hasDetected);
 
-    d2_start = changeDetectorPosition(d2_start, d2_velocity);
-    d2_velocity = changeDetectorVelocity(d2_start, d2_width, d2_lower, d2_upper, d2_velocity);
-    d2_hasDetected = overlapFields(d2_start, d2_width, p1_start, p1_width, p2_start, p2_width);
-    d2_color = chooseColor(d2_hasDetected);
+    d2.start = d.changePosition(d2.start, d2.velocity);
+    d2.velocity = d.changeVelocity(d2.start, d2.width, d2.lower, d2.upper, d2.velocity);
+    d2.hasDetected = overlapFields(d2.start, d2.width, p.p1_start, p.p1_width, p.p2_start, p.p2_width);
+    d2.color = d.chooseColor(d2.hasDetected);
 
-    d3_start = changeDetectorPosition(d3_start, d3_velocity);
-    d3_velocity = changeDetectorVelocity(d3_start, d3_height, d3_lower, d3_upper, d3_velocity);
-    d3_hasDetected = overlapFields(d3_start, d3_height, p3_start, p3_height);
-    d3_color = chooseColor(d3_hasDetected);
+    d3.start = d.changePosition(d3.start, d3.velocity);
+    d3.velocity = d.changeVelocity(d3.start, d3.height, d3.lower, d3.upper, d3.velocity);
+    d3.hasDetected = overlapFields(d3.start, d3.height, p.p3_start, p.p3_height);
+    d3.color = d.chooseColor(d3.hasDetected);
 }
 
 function draw() {
@@ -121,14 +69,14 @@ function draw() {
     r.ClearBackground(r.BLACK);
 
     // Drawing particles
-    drawVerticleRange(p1_start, p1_width, r.SKYBLUE);
-    drawVerticleRange(p2_start, p2_width, r.SKYBLUE);
-    drawHorizontalRange(p3_start, p3_height, r.SKYBLUE);
+    drawVerticleRange(p.p1_start, p.p1_width, r.SKYBLUE);
+    drawVerticleRange(p.p2_start, p.p2_width, r.SKYBLUE);
+    drawHorizontalRange(p.p3_start, p.p3_height, r.SKYBLUE);
 
     // Drawing detectors
-    drawVerticleRange(d1_start, d1_width, d1_color);
-    drawVerticleRange(d2_start, d2_width, d2_color);
-    drawHorizontalRange(d3_start, d3_height, d3_color);
+    drawVerticleRange(d1.start, d1.width, d1.color);
+    drawVerticleRange(d2.start, d2.width, d2.color);
+    drawHorizontalRange(d3.start, d3.height, d3.color);
 
     r.EndDrawing();
 }
