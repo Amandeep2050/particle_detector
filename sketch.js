@@ -1,130 +1,134 @@
 const r = require("raylib");
-const geometry = require("./geometry");
+
+const screenWidth = 900;
+
+// detector 1
+let d1_start = 0;
+const d1_width = 50;
+let d1_color = r.WHITE;
+let d1_velocity = 2;
+let d1_hasDetected = false;
+let d1_lower;
+let d1_upper;
+
+// detector 2
+let d2_start = screenWidth / 2;
+const d2_width = 50;
+let d2_color = r.WHITE;
+let d2_velocity = 5;
+let d2_hasDetected = false;
+let d2_lower;
+let d2_upper;
+
+// detector 3
+let d3_start = 0;
+const d3_height = 50;
+let d3_color = r.WHITE;
+let d3_velocity = 5;
+let d3_hasDetected = false;
+let d3_lower;
+let d3_upper;
+
+// vertical particles
+const p1_start = 200;
+const p1_width = 100;
+
+const p2_start = 800;
+const p2_width = 30;
+
+// horizontal particles
+const p3_start = 200;
+const p3_height = 40;
 
 function running() {
     return !r.WindowShouldClose();
 }
 
-function drawParticle(start, end, width, height, color) {
-    r.DrawRectangle(start, end, width, height, color);
+function setup(width, height, title) {
+    r.SetTraceLogLevel(r.LOG_NONE);
+    r.InitWindow(width, height, title);
+    r.SetTargetFPS(50);
+
+    d1_lower = 0;
+    d1_upper = r.GetScreenWidth() / 2;
+    d2_lower = d1_upper;
+    d2_upper = r.GetScreenWidth();
+    d3_lower = 0;
+    d3_upper = r.GetScreenHeight();
 }
 
-function choseColor(detectorX_Y, detectorEnd, particle1StartX_Y, particle1End, particle2StartX_Y, particle2End) {
-    collisionParticle1 = geometry.rangeOverlap(detectorX_Y, detectorEnd, particle1StartX_Y, particle1End);
-    collisionParticle2 = geometry.rangeOverlap(detectorX_Y, detectorEnd, particle2StartX_Y, particle2End);
-    return collisionParticle1 || collisionParticle2 ? r.RED : r.WHITE;
+function drawVerticleRange(start, width, color) {
+    r.DrawRectangle(start, 0, width, r.GetScreenHeight(), color);
 }
 
-const screenWidth = 900;
-const screenHeight = 600;
-
-function setup() {
-    const Title = "Particle Detector";
-    const screenFPS = 50;
-
-    r.InitWindow(screenWidth, screenHeight, Title);
-    r.SetTargetFPS(screenFPS);
+function drawHorizontalRange(start, height, color) {
+    r.DrawRectangle(0, start, r.GetScreenWidth(), height, color);
 }
 
-// detector 1
-let detector1X = 0;
-let detector1End = 0;
-let detector1Color = r.WHITE;
+function isDetectorOutOfBounds(start, end, lower, upper) {
+    return end === upper || start === lower;
+}
 
-// detector 2
-let detector2X = screenWidth / 2;
-let detector2End = 0;
-let detector2Color = r.WHITE;
+function changeDetectorPosition(start, velocity) {
+    return start += velocity;
+}
 
-const detectorY = 0;
-const detectorWidth = 50;
+function changeDetectorVelocity(start, width, lower, upper, velocity) {
+    const end = start + width;
+    return isDetectorOutOfBounds(start, end, lower, upper) ? -velocity : velocity;
+}
 
-// detector 3
-const detector3X = 0;
-let detector3Y = 0;
-let detector3End = 0;
-let detector3Color = r.WHITE;
-const detector3Width = screenWidth;
-const detector3Height = 50;
+function isBetween(x, y, a) {
+    return x <= a && a <= y;
+}
 
-// deltaX for detectors
-let dx_1 = 2;
-let dx_2 = 5;
-let dx_3 = 5;
+function rangeOverlap(start1, end1, start2, end2) {
+    return isBetween(start1, end1, start2) || isBetween(start2, end2, start1);
+}
 
-// vertical particles
-const particle1StartX = 200;
-const particle1StartY = 0;
-const particle1Width = 100;
-const particle1Height = screenHeight;
-const particle1End = particle1StartX + particle1Width;
+function overlapFields(detectorStart, detectorWidth, field1_start, field1_width, field2_start, field2_width) {
+    const detectorEnd = detectorStart + detectorWidth;
+    const field1_end = field1_start + field1_width;
+    const field2_end = field2_start + field2_width;
 
-const particle2StartX = 800;
-const particle2StartY = 0;
-const particle2Width = 30;
-const particle2Height = screenHeight;
-const particle2End = particle2StartX + particle2Width;
+    return (rangeOverlap(detectorStart, detectorEnd, field1_start, field1_end) ||
+        rangeOverlap(detectorStart, detectorEnd, field2_start, field2_end));
+}
 
-// horizontal particles
-const particle3StartX = 0;
-const particle3StartY = 200;
-const particle3Width = screenWidth;
-const particle3Height = 40;
-const particle3End = particle3StartY + particle3Height;
-
-const particleColor = r.BLUE;
+function chooseColor(hasDetected) {
+    return hasDetected ? r.RED : r.WHITE;
+}
 
 function update() {
-    // updating detectors location
-    detector1X += dx_1;
-    detector2X += dx_2;
-    detector3Y += dx_3;
+    d1_start = changeDetectorPosition(d1_start, d1_velocity);
+    d1_velocity = changeDetectorVelocity(d1_start, d1_width, d1_lower, d1_upper, d1_velocity);
+    d1_hasDetected = overlapFields(d1_start, d1_width, p1_start, p1_width, p2_start, p2_width);
+    d1_color = chooseColor(d1_hasDetected);
 
-    // updating horizontal detectors end
-    detector1End = detector1X + detectorWidth;
-    detector2End = detector2X + detectorWidth;
+    d2_start = changeDetectorPosition(d2_start, d2_velocity);
+    d2_velocity = changeDetectorVelocity(d2_start, d2_width, d2_lower, d2_upper, d2_velocity);
+    d2_hasDetected = overlapFields(d2_start, d2_width, p1_start, p1_width, p2_start, p2_width);
+    d2_color = chooseColor(d2_hasDetected);
 
-    // updating vertical detector end
-    detector3End = detector3Y + detector3Height;
-
-    const halfScreenWidth = screenWidth / 2;
-
-    // checking collision
-    const collisionOfDetector1 = geometry.checkCollisionWithEdges(detector1X, detector1End, 0, halfScreenWidth);
-    const collisionOfDetector2 = geometry.checkCollisionWithEdges(detector2X, detector2End, halfScreenWidth, screenWidth);
-    const collisionOfDetector3 = geometry.checkCollisionWithEdges(detector3Y, detector3End, 0, screenHeight);
-
-    // changing direction.
-    if (collisionOfDetector1) {
-        dx_1 = -dx_1;
-    }
-    if (collisionOfDetector2) {
-        dx_2 = -dx_2;
-    }
-    if (collisionOfDetector3) {
-        dx_3 = -dx_3;
-    }
-
-    // Chosing color for detectors
-    detector1Color = choseColor(detector1X, detector1End, particle1StartX, particle1End, particle2StartX, particle2End);
-    detector2Color = choseColor(detector2X, detector2End, particle1StartX, particle1End, particle2StartX, particle2End);
-    detector3Color = choseColor(detector3Y, detector3End, particle3StartY, particle3End, particle3StartY, particle3End);
+    d3_start = changeDetectorPosition(d3_start, d3_velocity);
+    d3_velocity = changeDetectorVelocity(d3_start, d3_height, d3_lower, d3_upper, d3_velocity);
+    d3_hasDetected = overlapFields(d3_start, d3_height, p3_start, p3_height);
+    d3_color = chooseColor(d3_hasDetected);
 }
-
 
 function draw() {
     r.BeginDrawing();
     r.ClearBackground(r.BLACK);
 
     // Drawing particles
-    drawParticle(particle1StartX, particle1StartY, particle1Width, particle1Height, particleColor);
-    drawParticle(particle2StartX, particle2StartY, particle2Width, particle2Height, particleColor);
-    drawParticle(particle3StartX, particle3StartY, particle3Width, particle3Height, particleColor);
+    drawVerticleRange(p1_start, p1_width, r.SKYBLUE);
+    drawVerticleRange(p2_start, p2_width, r.SKYBLUE);
+    drawHorizontalRange(p3_start, p3_height, r.SKYBLUE);
 
-    // Drawing Rectangles
-    r.DrawRectangle(detector1X, detectorY, detectorWidth, screenHeight, detector1Color);
-    r.DrawRectangle(detector2X, detectorY, detectorWidth, screenHeight, detector2Color);
-    r.DrawRectangle(detector3X, detector3Y, detector3Width, detector3Height, detector3Color);
+    // Drawing detectors
+    drawVerticleRange(d1_start, d1_width, d1_color);
+    drawVerticleRange(d2_start, d2_width, d2_color);
+    drawHorizontalRange(d3_start, d3_height, d3_color);
 
     r.EndDrawing();
 }
