@@ -1,17 +1,28 @@
-const p1_start = 200;
-const p1_width = 100;
+const r = require("raylib");
+const range = require("./range");
 
-const p2_start = 800;
-const p2_width = 30;
+function createFieldV(start, width) {
+    return {
+        start: start,
+        width: width,
+    };
+}
 
-const p3_start = 200;
-const p3_height = 40;
+function createFieldH(start, height) {
+    return {
+        start: start,
+        height: height,
+    };
+}
+
+function draw(f1, f2, f3) {
+    range.drawVerticleRange(f1.start, f1.width, r.SKYBLUE);
+    range.drawVerticleRange(f2.start, f2.width, r.SKYBLUE);
+    range.drawHorizontalRange(f3.start, f3.height, r.SKYBLUE);
+}
 
 module.exports = {
-    p1_start,
-    p1_width,
-    p2_start,
-    p2_width,
-    p3_start,
-    p3_height,
+    createFieldV,
+    createFieldH,
+    draw,
 };

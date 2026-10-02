@@ -1,9 +1,9 @@
 const sketch = require("./sketch");
 
-function loop() {
+function loop(world) {
     while (sketch.running()) {
-        sketch.update();
-        sketch.draw();
+        sketch.update(world);
+        sketch.draw(world);
     }
 }
 
@@ -11,8 +11,8 @@ function main() {
     const WIDTH = 900;
     const HEIGHT = 600;
     const TITLE = "Particle Detector";
-    sketch.setup(WIDTH, HEIGHT, TITLE);
-    loop();
+    const world = sketch.setup(WIDTH, HEIGHT, TITLE);
+    loop(world);
     sketch.teardown();
 }
 
